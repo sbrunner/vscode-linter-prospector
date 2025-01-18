@@ -1,3 +1,9 @@
 # Change Log
 
--   Release information can be added here or can be tracked via github release.
+All notable changes to the "linter-prospector" extension will be documented in this file.
+
+Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+
+## [Unreleased]
+
+- Initial release
