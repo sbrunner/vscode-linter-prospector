@@ -1,0 +1,67 @@
+name: Continuous integration
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+
+jobs:
+  pre-commit:
+    name: Pre-commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    if: "!startsWith(github.event.head_commit.message, '[skip ci] ')"
+    outputs:
+      success: ${{ steps.success.outputs.success }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.13'
+      - run: python3 -m pip install --user --requirement=.github/requirements.txt
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: "pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}\npre-commit-"
+      - run: pre-commit run --all-files
+      - run: git diff --exit-code --patch > /tmp/pre-commit.patch || true
+        if: failure()
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Apply pre-commit fix.patch
+          path: /tmp/pre-commit.patch
+          retention-days: 1
+        if: failure()
+
+      - name: Print environment information
+        run: c2cciutils-env
+
+      - id: success
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  main:
+    name: Continuous integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    if: "always() && !startsWith(github.event.head_commit.message, '[skip ci] ')"
+    needs:
+      - pre-commit
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: npm install
+      - run: npm install --global @vscode/vsce
+      - run: npm run vscode:package
+      # - run: npm run test
+
+      - run: '[[ "${{ needs.pre-commit.outputs.success }}" == "true" ]]'
