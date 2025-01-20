@@ -1,10 +1,16 @@
 import {
+  LinterGetIgnoreLinePragmaFunction,
   LinterGetOffensesFunction,
   LinterParseFixOutputFunction,
   LinterOffense,
   LinterOffenseSeverity,
 } from 'vscode-linter-api';
 import { Uri } from 'vscode';
+
+const ignoreNoqa = /#\s*noqa:([^#]*[^# ])(\s*#.*)?$/i
+const ignorePylint = /#\s*pylint: disable=([^#]*[^# ])(\s*#.*)?$/i
+const ignoreMypy = /#\s*type: ignore\[([^#]*[^# ])\](\s*#.*)?$/i
+
 
 interface ProspectorOffense {
   messages: ProspectorMessage[];
@@ -69,3 +75,46 @@ export const getOffenses: LinterGetOffensesFunction = ({ stdout, uri }: { stdout
 
 export const parseFixOutput: LinterParseFixOutputFunction = ({ stdout }: { stdout: string }) =>
   Promise.resolve(stdout);
+
+export const getIgnoreLinePragma: LinterGetIgnoreLinePragmaFunction = async ({ line, indent, code }) => {
+  let codeSplit = code.split(':', 1)
+  let tool = codeSplit[0];
+  let codeOnly = codeSplit[1];
+
+  if (tool == 'pylint') {
+    let pylintMatch = ignorePylint.exec(line.text);
+    if (pylintMatch == null) {
+      return Promise.resolve(line.text + ' # pylint: disable=' + code);
+    }
+    let pylintIgnoreList = pylintMatch[1].split(',');
+    if (pylintIgnoreList.includes(codeOnly)) {
+      return Promise.resolve(line.text);
+    }
+    pylintIgnoreList.push(codeOnly);
+    return Promise.resolve(line.text.replace(ignorePylint, '# pylint: disable=' + pylintIgnoreList.join(',') + pylintMatch[2]));
+  }
+  else if (tool == 'mypy') {
+    let mypyMatch = ignoreMypy.exec(line.text);
+    if (mypyMatch == null) {
+      return Promise.resolve(line.text + ' # type: ignore[' + code + ']');
+    }
+    let mypyIgnoreList = mypyMatch[1].split(',');
+    if (mypyIgnoreList.includes(codeOnly)) {
+      return Promise.resolve(line.text);
+    }
+    mypyIgnoreList.push(codeOnly);
+    return Promise.resolve(line.text.replace(ignoreMypy, '# type: ignore[' + mypyIgnoreList.join(',') + ']' + mypyMatch[2]));
+  }
+  else {
+    let noqaMatch = ignoreNoqa.exec(line.text);
+    if (noqaMatch == null) {
+      return Promise.resolve(line.text + ' # noqa ' + code);
+    }
+    let noqaIgnoreList = noqaMatch[1].split(',');
+    if (noqaIgnoreList.includes(codeOnly)) {
+      return Promise.resolve(line.text);
+    }
+    noqaIgnoreList.push(codeOnly);
+    return Promise.resolve(line.text.replace(ignoreNoqa, '# noqa: ' + noqaIgnoreList.join(',') + noqaMatch[2]));
+  }
+};

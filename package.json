@@ -23,7 +23,8 @@
         "linter-prospector.config": {
           "default": {
             "capabilities": [
-              "fix-all"
+              "fix-all",
+              "ignore-line"
             ],
             "command": [
               "prospector",
