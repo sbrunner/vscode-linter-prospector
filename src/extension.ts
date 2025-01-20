@@ -29,8 +29,6 @@ interface ProspectorLocation {
   characterEnd?: number;
 }
 
-const messageRegex = /(?<message>.*) \[See: (?<url>.*)\]/;
-
 const offenseSeverity: { [key: string]: LinterOffenseSeverity } = {
   convention: LinterOffenseSeverity.warning,
   warning: LinterOffenseSeverity.error,
@@ -42,12 +40,6 @@ export const getOffenses: LinterGetOffensesFunction = ({ stdout, uri }: { stdout
 
   result.messages.forEach((message: ProspectorMessage) => {
     let messageString = message.message;
-    let docsUrl = '';
-    const match = message.message.match(messageRegex);
-    if (match) {
-      messageString = match.groups!.message;
-      docsUrl = match.groups!.url;
-    }
 
     offenses.push({
       uri,
@@ -62,7 +54,7 @@ export const getOffenses: LinterGetOffensesFunction = ({ stdout, uri }: { stdout
       severity: LinterOffenseSeverity.error,
       source: 'prospector',
       correctable: message.fixable || false,
-      docsUrl: message.docUrl || docsUrl,
+      docsUrl: message.docUrl,
     });
   });
 
