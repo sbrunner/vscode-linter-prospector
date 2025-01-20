@@ -45,10 +45,16 @@ export const getOffenses: LinterGetOffensesFunction = ({ stdout, uri }: { stdout
       uri,
       lineStart: Math.max(0, message.location.line - 1),
       columnStart: Math.max(0, message.location.character),
-      lineEnd: Math.max(0, (message.location.lineEnd === undefined ? message.location.line :
-        message.location.lineEnd) - 1),
-      columnEnd: Math.max(0, (message.location.characterEnd === undefined ? message.location.character :
-        message.location.characterEnd)),
+      lineEnd: Math.max(
+        0,
+        (message.location.lineEnd === undefined ? message.location.line : message.location.lineEnd) - 1,
+      ),
+      columnEnd: Math.max(
+        0,
+        message.location.characterEnd === undefined
+          ? message.location.character
+          : message.location.characterEnd,
+      ),
       code: `${message.source}:${message.code}`,
       message: messageString,
       severity: LinterOffenseSeverity.error,
