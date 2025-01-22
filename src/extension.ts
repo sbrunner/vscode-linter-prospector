@@ -7,10 +7,9 @@ import {
 } from 'vscode-linter-api';
 import { Uri } from 'vscode';
 
-const ignoreNoqa = /#\s*noqa:([^#]*[^# ])(\s*#.*)?$/i
-const ignorePylint = /#\s*pylint: disable=([^#]*[^# ])(\s*#.*)?$/i
-const ignoreMypy = /#\s*type: ignore\[([^#]*[^# ])\](\s*#.*)?$/i
-
+const ignoreNoqa = /#\s*noqa:([^#]*[^# ])(\s*#.*)?$/i;
+const ignorePylint = /#\s*pylint: disable=([^#]*[^# ])(\s*#.*)?$/i;
+const ignoreMypy = /#\s*type: ignore\[([^#]*[^# ])\](\s*#.*)?$/i;
 
 interface ProspectorOffense {
   messages: ProspectorMessage[];
@@ -77,7 +76,7 @@ export const parseFixOutput: LinterParseFixOutputFunction = ({ stdout }: { stdou
   Promise.resolve(stdout);
 
 export const getIgnoreLinePragma: LinterGetIgnoreLinePragmaFunction = async ({ line, indent, code }) => {
-  let codeSplit = code.split(':', 1)
+  let codeSplit = code.split(':', 1);
   let tool = codeSplit[0];
   let codeOnly = codeSplit[1];
 
@@ -91,9 +90,10 @@ export const getIgnoreLinePragma: LinterGetIgnoreLinePragmaFunction = async ({ l
       return Promise.resolve(line.text);
     }
     pylintIgnoreList.push(codeOnly);
-    return Promise.resolve(line.text.replace(ignorePylint, '# pylint: disable=' + pylintIgnoreList.join(',') + pylintMatch[2]));
-  }
-  else if (tool == 'mypy') {
+    return Promise.resolve(
+      line.text.replace(ignorePylint, '# pylint: disable=' + pylintIgnoreList.join(',') + pylintMatch[2]),
+    );
+  } else if (tool == 'mypy') {
     let mypyMatch = ignoreMypy.exec(line.text);
     if (mypyMatch == null) {
       return Promise.resolve(line.text + ' # type: ignore[' + code + ']');
@@ -103,9 +103,10 @@ export const getIgnoreLinePragma: LinterGetIgnoreLinePragmaFunction = async ({ l
       return Promise.resolve(line.text);
     }
     mypyIgnoreList.push(codeOnly);
-    return Promise.resolve(line.text.replace(ignoreMypy, '# type: ignore[' + mypyIgnoreList.join(',') + ']' + mypyMatch[2]));
-  }
-  else {
+    return Promise.resolve(
+      line.text.replace(ignoreMypy, '# type: ignore[' + mypyIgnoreList.join(',') + ']' + mypyMatch[2]),
+    );
+  } else {
     let noqaMatch = ignoreNoqa.exec(line.text);
     if (noqaMatch == null) {
       return Promise.resolve(line.text + ' # noqa ' + code);
@@ -115,6 +116,8 @@ export const getIgnoreLinePragma: LinterGetIgnoreLinePragmaFunction = async ({ l
       return Promise.resolve(line.text);
     }
     noqaIgnoreList.push(codeOnly);
-    return Promise.resolve(line.text.replace(ignoreNoqa, '# noqa: ' + noqaIgnoreList.join(',') + noqaMatch[2]));
+    return Promise.resolve(
+      line.text.replace(ignoreNoqa, '# noqa: ' + noqaIgnoreList.join(',') + noqaMatch[2]),
+    );
   }
 };
