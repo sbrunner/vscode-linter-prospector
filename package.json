@@ -3,7 +3,7 @@
   "displayName": "linter-prospector",
   "description": "Prospector extension for https://github.com/fnando/vscode-linter",
   "icon": "prospector-logo.png",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "engines": {
     "vscode": "^1.96.0"
   },
