@@ -86,7 +86,7 @@
     "@vscode/test-electron": "^2.4.1",
     "esbuild": "^0.25.0",
     "eslint": "^9.16.0",
-    "npm-run-all2": "^7.0.0",
+    "npm-run-all2": "^8.0.0",
     "typescript": "^5.7.2",
     "vscode-linter-api": "github:fnando/vscode-linter-api"
   }
